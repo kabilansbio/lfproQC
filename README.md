@@ -18,7 +18,7 @@ You can install the development version of lfproQC from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("kabilansbio/lfproQC")
+devtools::install_github("kabilansbio/lfproQC", build_manual = TRUE, build_vignette = TRUE)
 ```
 
 ## Example
