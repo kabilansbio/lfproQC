@@ -4,6 +4,8 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
+options(rmarkdown.html_vignette.check_title = FALSE)
+
 ## -----------------------------------------------------------------------------
 library(lfproQC)
 
@@ -23,22 +25,22 @@ yeast$`PMAD Result`
 yeast$`Best combinations`
 
 ## ----out.width = "400px"------------------------------------------------------
-Boxplot_data(yeast$knn_rlr_data) 
+Boxplot_data(yeast$rlr_knn_data) 
 
 ## ----out.width = "400px"------------------------------------------------------
-Densityplot_data(yeast$knn_rlr_data)
+Densityplot_data(yeast$rlr_knn_data)
 
 ## ----out.width = "400px"------------------------------------------------------
-Corrplot_data(yeast$knn_rlr_data)
+Corrplot_data(yeast$rlr_knn_data)
 
 ## ----out.width = "400px"------------------------------------------------------
-MDSplot_data(yeast$knn_rlr_data)
+MDSplot_data(yeast$rlr_knn_data)
 
 ## ----out.width = "400px"------------------------------------------------------
-QQplot_data(yeast$knn_rlr_data)
+QQplot_data(yeast$rlr_knn_data)
 
 ## ----results='hide'-----------------------------------------------------------
-top_table_yeast <- top_table_fn(yeast$knn_rlr_data, yeast_groups, 2, 1)
+top_table_yeast <- top_table_fn(yeast$rlr_knn_data, yeast_groups, 2, 1)
 
 ## ----out.width = "400px"------------------------------------------------------
 de_yeast_MA <- MAplot_DE_fn(top_table_yeast,-1,1,0.05)

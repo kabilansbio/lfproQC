@@ -12,6 +12,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 **To attach the package in R studio**
@@ -50,27 +52,27 @@ yeast$`Best combinations`
   
 *<span style="color:blue">1. By boxplot</span>*
 ```{r, out.width = "400px"}
-Boxplot_data(yeast$knn_rlr_data) 
+Boxplot_data(yeast$`rlr_knn_data`) 
 ```
 
 *<span style="color:blue">2. By density plot</span>*
 ```{r, out.width = "400px"}
-Densityplot_data(yeast$knn_rlr_data)
+Densityplot_data(yeast$`rlr_knn_data`)
 ```
 
 *<span style="color:blue">3. By correlation heatmap</span>*
 ```{r, out.width = "400px"}
-Corrplot_data(yeast$knn_rlr_data)
+Corrplot_data(yeast$`rlr_knn_data`)
 ```
 
 *<span style="color:blue">4. By MDS plot</span>*
 ```{r, out.width = "400px"}
-MDSplot_data(yeast$knn_rlr_data)
+MDSplot_data(yeast$`rlr_knn_data`)
 ```
 
 *<span style="color:blue">5. By QQ-plot</span>*
 ```{r, out.width = "400px"}
-QQplot_data(yeast$knn_rlr_data)
+QQplot_data(yeast$`rlr_knn_data`)
 ```
 
 **Differential expression analysis**
@@ -78,7 +80,7 @@ QQplot_data(yeast$knn_rlr_data)
   
 *<span style="color:green">To Calculate the top-table values</span>*
 ```{r, results='hide'}
-top_table_yeast <- top_table_fn(yeast$knn_rlr_data, yeast_groups, 2, 1)
+top_table_yeast <- top_table_fn(yeast$`rlr_knn_data`, yeast_groups, 2, 1)
 ```
 
 **To visualize the different kinds of differentially abundant proteins, such as up-regulated, down-regulated, significant and non-significant proteins**
