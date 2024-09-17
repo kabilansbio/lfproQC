@@ -23,7 +23,7 @@ library(lfproQC)
 
 **To find the best combination of normalization and imputation method for the dataset**
 ```{r, results='markup'}
-yeast <- best_combination(yeast_data, yeast_groups)
+yeast <- best_combination(yeast_data, yeast_groups, data_type = "Protein")
 ```
 
 **PCV values result**
@@ -133,7 +133,7 @@ library(knitr)
 ```
 
 ```{r, echo=FALSE, out.width = "800px"}
-knitr::include_graphics("images/flow1.jpg")
+knitr::include_graphics("images/flow1.png")
 ```
 
 **Session Information**

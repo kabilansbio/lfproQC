@@ -2,19 +2,22 @@
 #'
 #' @description This function will provide the best combinations of normalization
 #' and imputation methods for the user given dataset based on the intragroup
-#' variation evaluation parameters called PCV, PEV and PMAD.
+#' variation evaluation parameters called PCV, PEV, PMAD and NRMSE.
 #'
 #' @param data_input Label-free proteomics expression data as a dataframe
 #' @param groups Group information about the input data
+#' @param data_type A character string specifying the type of data being used. Use `"Peptide"` if your dataset contains peptide information, where the first column represents peptide IDs and the second column represents protein IDs. Use `"Protein"` if your dataset consists of protein data, where the first column represents protein IDs. The function will handle the data accordingly based on this parameter.
+#' @param aggr_method A character string specifying the method for aggregating peptide data to corresponding protein values. Use `"sum"` to aggregate by the sum of peptide intensities, `"mean"` to aggregate by the mean of peptide intensities, or `"median"` to aggregate by the median of peptide intensities. This parameter is only applicable when `data_type` is set to `"Peptide"`.
 #'
 #' @details Label-free LC-MS proteomics expression data is often affected by heterogeneity and missing values. 
 #' Normalization and missing value imputation are the commonly used techniques to solve these issues and make the dataset suitable for further downstream analysis. 
 #' This function provides the best combination of normalization and imputation methods for the dataset, choosing from the three normalization methods (vsn, loess, and rlr) and three imputation methods (knn, lls, svd). 
 #' The intragroup variation evaluation measures named pooled co-efficient of variance (PCV), pooled estimate of variance (PEV) and pooled median absolute deviation (PMAD) are used for selecting the best combination of normalization and imputation method for the given dataset.
-#' It will return the best combinations based on each evaluation parameters of
-#' PCV, PEV, and PMAD.
+#' It will return the best combinations based on each evaluation parameters of PCV, PEV, and PMAD. 
 #'
-#' Along with this, the user can get all three normalized datasets, nine combinations of normalized and missing values imputed datasets, and the PCV, PEV, and PMAD result values.
+#' Along with this, the user can get all three normalized datasets, nine combinations of normalized and missing values imputed datasets, and the PCV, PEV, and PMAD result values. The user can also obtain the Normalized Root Mean Square Error (NRMSE) values, 
+#' calculated by comparing the normalized and imputed dataset with the original dataset across all nine combinations.
+#' These NRMSE values provide insight into the accuracy of the imputation and normalization processes.
 #'
 #' @returns
 #'  This function gives the list  which consist of following results.
@@ -31,6 +34,9 @@
 #' `PMAD Result` Values of groupwise PMAD, overall PMAD, PMAD mean, PMAD median
 #'               and PMAD standard deviation for all combinations.
 #'
+#' `NRMSE Result` NRMSE values calculated for the normalized and imputed dataset 
+#'                to the original dataset. 
+#'                
 #' `vsn_data` The `vsn` normalized dataset
 #'
 #' `loess_data` The `loess` normalized dataset
@@ -73,7 +79,7 @@
 #'
 #' @examples
 #' \donttest{
-#' result <- best_combination(yeast_data, yeast_groups)
+#' result <- best_combination(yeast_data, yeast_groups, data_type = "Protein")
 #' result$`Best combinations`
 #' result$`PCV Result`
 #' result$`PMAD Result`
@@ -81,64 +87,99 @@
 #' }
 
 #Main function for finding out the top three combinations
-best_combination <- function (data_input, groups){
+best_combination <- function (data_input, groups, data_type, aggr_method){
   
   sink("output.txt")
-
+  
   Type <- Group <- name <- value <- . <- value_Mean <- median <-
     value_Median <- sd <- value_SD <- PCV_mean <- PCV_median <- PCV_sd <-
     PEV_mean <- PEV_median <- PEV_sd <- PMAD_mean <- PMAD_median <- PMAD_sd <-
-    rowid <- original_order <- group <- mass <- all_na <- NULL
+    rowid <- original_order <- group <- mass <- all_na <- sym <- group_by <-
+    summarise <- across <- where <- NULL
+  
+  # Adding peptide to protein aggregation functionality
+  aggregate_peptide_to_protein <- function(data, method) {
+    # Ensure the data has at least three columns: Peptide ID, Protein ID, and expression values
+    if (ncol(data) < 3) {
+      stop("Peptide data must have at least three columns (Peptide ID, Protein ID, and expression values).")
+    }
+    
+    peptide_column <- names(data)[1]  # First column is assumed to be Peptide ID
+    protein_column <- names(data)[2]  # Second column is assumed to be Protein ID
+    
+    # Check if the aggregation method is valid
+    if (!method %in% c("sum", "mean", "median")) {
+      stop("Invalid aggregation method. Choose either 'sum', 'mean', or 'median'.")
+    }
+    
+    # Convert column names to symbols for dplyr functions
+    protein_col_sym <- sym(protein_column)
+    
+    # Perform aggregation based on the Protein ID column
+    aggregated_data <- data %>%
+      group_by(!!protein_col_sym) %>%
+      summarise(across(where(is.numeric), ~ match.fun(method)(., na.rm = TRUE)))  # Aggregate numeric columns
+    
+    # Rename the Protein ID column back to original after aggregation
+    colnames(aggregated_data)[1] <- protein_column
+    
+    return(aggregated_data)
+  }
+  
+  # If peptide data is chosen, perform aggregation, otherwise proceed with the protein data
+  if (data_type == "Peptide" && !is.null(aggr_method)) {
+    data_input <- aggregate_peptide_to_protein(data_input, aggr_method)
+  }
   
   #Converting all zeros to NAs
   data_input[data_input == 0] <- NA
-
- complete_data_fn <- function(data, groups) {
-  # Rename the columns in the groups data
-  colnames(groups) <- c("name", "group")
-   
-  # Add a new column to preserve the original order of rows
-  data <- data %>% dplyr::mutate(original_order = dplyr::row_number())
-   
-  # Rename the first column of data
-  colnames(data)[1] <- "rowid"
-   
-  # Reshape the data into long format
-  long_data <- data %>%
-   tidyr::pivot_longer(-c(rowid, original_order), names_to = "name", values_to = "mass")
-   
-  # Merge with groups to add group information
-  long_data <- long_data %>%
-    dplyr::left_join(groups, by = "name")
-   
-  # Identify rows where any group has all missing values
-  group_summary <- long_data %>%
-    dplyr::group_by(rowid, group) %>%
-    dplyr::summarise(all_na = all(is.na(mass)), .groups = 'drop') %>%
-    dplyr::ungroup()
-   
-  # Identify rows to remove (where any group has all missing values)
-  rows_to_remove <- group_summary %>%
-    dplyr::group_by(rowid) %>%
-    dplyr::summarise(remove = any(all_na)) %>%
-    dplyr::filter(remove) %>%
-    dplyr::pull(rowid) %>%
-   unique()
-   
-  # Filter out rows with any completely missing group
-  filtered_data <- long_data %>%
-    dplyr::filter(!(rowid %in% rows_to_remove)) %>%
-    dplyr::select(-group)
-   
-  # Reshape back to wide format and reorder based on the original order
-  com_data <- filtered_data %>%
-   tidyr::pivot_wider(names_from = name, values_from = mass) %>%
-    dplyr::arrange(original_order) %>%
-    dplyr::select(-original_order)
-   
-  return(com_data)
- } 
- 
+  
+  complete_data_fn <- function(data, groups) {
+    # Rename the columns in the groups data
+    colnames(groups) <- c("name", "group")
+    
+    # Add a new column to preserve the original order of rows
+    data <- data %>% dplyr::mutate(original_order = dplyr::row_number())
+    
+    # Rename the first column of data
+    colnames(data)[1] <- "rowid"
+    
+    # Reshape the data into long format
+    long_data <- data %>%
+      tidyr::pivot_longer(-c(rowid, original_order), names_to = "name", values_to = "mass")
+    
+    # Merge with groups to add group information
+    long_data <- long_data %>%
+      dplyr::left_join(groups, by = "name")
+    
+    # Identify rows where any group has all missing values
+    group_summary <- long_data %>%
+      dplyr::group_by(rowid, group) %>%
+      dplyr::summarise(all_na = all(is.na(mass)), .groups = 'drop') %>%
+      dplyr::ungroup()
+    
+    # Identify rows to remove (where any group has all missing values)
+    rows_to_remove <- group_summary %>%
+      dplyr::group_by(rowid) %>%
+      dplyr::summarise(remove = any(all_na)) %>%
+      dplyr::filter(remove) %>%
+      dplyr::pull(rowid) %>%
+      unique()
+    
+    # Filter out rows with any completely missing group
+    filtered_data <- long_data %>%
+      dplyr::filter(!(rowid %in% rows_to_remove)) %>%
+      dplyr::select(-group)
+    
+    # Reshape back to wide format and reorder based on the original order
+    com_data <- filtered_data %>%
+      tidyr::pivot_wider(names_from = name, values_from = mass) %>%
+      dplyr::arrange(original_order) %>%
+      dplyr::select(-original_order)
+    
+    return(com_data)
+  } 
+  
   com_data <- complete_data_fn (data_input, groups)
   
   #Giving original name to the first column
@@ -172,7 +213,7 @@ best_combination <- function (data_input, groups){
   }
   
   #Grouping of dataframe as a triplicate groups
-  group_data <- grouping_data(com_data2, groups)
+  group_data <- grouping_data(com_data2, groups) 
   
   #VSN Normalization function
   VSN_Norm <- function(dat) {
@@ -401,8 +442,8 @@ best_combination <- function (data_input, groups){
   ###PCV_median
   #Combining all the above results
   total_pcv_median <- plyr::rbind.fill(vsn_knn_PCV_median, vsn_lls_PCV_median, vsn_svd_PCV_median, 
-                                     loess_knn_PCV_median, loess_lls_PCV_median, loess_svd_PCV_median, 
-                                     rlr_knn_PCV_median, rlr_lls_PCV_median, rlr_svd_PCV_median)
+                                       loess_knn_PCV_median, loess_lls_PCV_median, loess_svd_PCV_median, 
+                                       rlr_knn_PCV_median, rlr_lls_PCV_median, rlr_svd_PCV_median)
   
   #Separating the results groupwise
   total_Group_data_PCV_median <- total_pcv_median %>%
@@ -428,8 +469,8 @@ best_combination <- function (data_input, groups){
   ###PCV_sd
   #Combining all the above results
   total_pcv_sd <- plyr::rbind.fill(vsn_knn_PCV_sd, vsn_lls_PCV_sd, vsn_svd_PCV_sd, 
-                                     loess_knn_PCV_sd, loess_lls_PCV_sd, loess_svd_PCV_sd, 
-                                     rlr_knn_PCV_sd, rlr_lls_PCV_sd, rlr_svd_PCV_sd)
+                                   loess_knn_PCV_sd, loess_lls_PCV_sd, loess_svd_PCV_sd, 
+                                   rlr_knn_PCV_sd, rlr_lls_PCV_sd, rlr_svd_PCV_sd)
   
   #Separating the results groupwise
   total_Group_data_PCV_sd <- total_pcv_sd %>%
@@ -690,8 +731,8 @@ best_combination <- function (data_input, groups){
   ###PEV_median
   #Combining all the above results
   total_pev_median <- plyr::rbind.fill(vsn_knn_PEV_median, vsn_lls_PEV_median, vsn_svd_PEV_median, 
-                                     loess_knn_PEV_median, loess_lls_PEV_median, loess_svd_PEV_median, 
-                                     rlr_knn_PEV_median, rlr_lls_PEV_median, rlr_svd_PEV_median)
+                                       loess_knn_PEV_median, loess_lls_PEV_median, loess_svd_PEV_median, 
+                                       rlr_knn_PEV_median, rlr_lls_PEV_median, rlr_svd_PEV_median)
   
   #Separating the results groupwise
   total_Group_data_PEV_median <- total_pev_median %>%
@@ -717,8 +758,8 @@ best_combination <- function (data_input, groups){
   ###PEV_sd
   #Combining all the above results
   total_pev_sd <- plyr::rbind.fill(vsn_knn_PEV_sd, vsn_lls_PEV_sd, vsn_svd_PEV_sd, 
-                                     loess_knn_PEV_sd, loess_lls_PEV_sd, loess_svd_PEV_sd, 
-                                     rlr_knn_PEV_sd, rlr_lls_PEV_sd, rlr_svd_PEV_sd)
+                                   loess_knn_PEV_sd, loess_lls_PEV_sd, loess_svd_PEV_sd, 
+                                   rlr_knn_PEV_sd, rlr_lls_PEV_sd, rlr_svd_PEV_sd)
   
   #Separating the results groupwise
   total_Group_data_PEV_sd <- total_pev_sd %>%
@@ -951,8 +992,8 @@ best_combination <- function (data_input, groups){
   ###PMAD_mean
   #Combining all the above results
   total_pmad_mean <- plyr::rbind.fill(vsn_knn_PMAD_mean, vsn_lls_PMAD_mean, vsn_svd_PMAD_mean, 
-                                     loess_knn_PMAD_mean, loess_lls_PMAD_mean, loess_svd_PMAD_mean, 
-                                     rlr_knn_PMAD_mean, rlr_lls_PMAD_mean, rlr_svd_PMAD_mean)
+                                      loess_knn_PMAD_mean, loess_lls_PMAD_mean, loess_svd_PMAD_mean, 
+                                      rlr_knn_PMAD_mean, rlr_lls_PMAD_mean, rlr_svd_PMAD_mean)
   
   #Separating the results groupwise
   total_Group_data_PMAD_mean <- total_pmad_mean %>%
@@ -978,8 +1019,8 @@ best_combination <- function (data_input, groups){
   ###PMAD_median
   #Combining all the above results
   total_pmad_median <- plyr::rbind.fill(vsn_knn_PMAD_median, vsn_lls_PMAD_median, vsn_svd_PMAD_median, 
-                                      loess_knn_PMAD_median, loess_lls_PMAD_median, loess_svd_PMAD_median, 
-                                      rlr_knn_PMAD_median, rlr_lls_PMAD_median, rlr_svd_PMAD_median)
+                                        loess_knn_PMAD_median, loess_lls_PMAD_median, loess_svd_PMAD_median, 
+                                        rlr_knn_PMAD_median, rlr_lls_PMAD_median, rlr_svd_PMAD_median)
   
   #Separating the results groupwise
   total_Group_data_PMAD_median <- total_pmad_median %>%
@@ -1005,8 +1046,8 @@ best_combination <- function (data_input, groups){
   ###PMAD_sd
   #Combining all the above results
   total_pmad_sd <- plyr::rbind.fill(vsn_knn_PMAD_sd, vsn_lls_PMAD_sd, vsn_svd_PMAD_sd, 
-                                      loess_knn_PMAD_sd, loess_lls_PMAD_sd, loess_svd_PMAD_sd, 
-                                      rlr_knn_PMAD_sd, rlr_lls_PMAD_sd, rlr_svd_PMAD_sd)
+                                    loess_knn_PMAD_sd, loess_lls_PMAD_sd, loess_svd_PMAD_sd, 
+                                    rlr_knn_PMAD_sd, rlr_lls_PMAD_sd, rlr_svd_PMAD_sd)
   
   #Separating the results groupwise
   total_Group_data_PMAD_sd <- total_pmad_sd %>%
@@ -1228,7 +1269,41 @@ best_combination <- function (data_input, groups){
   PMAD_table1 <- PMAD_table2 %>% dplyr::select(-tidyselect::contains("Type"))
   PMAD_table <- cbind(Combinations, PMAD_table1)
   
-  result_list <- list("Best combinations" = as.data.frame(Best_combinations), "PCV Result" = PCV_table, "PEV Result" = PEV_table, "PMAD Result" =PMAD_table,
+  # Apply imputation methods and handle missing values
+  vsn.knn.dat[is.na(vsn.knn.dat)] <- loess.knn.dat[is.na(rlr.knn.dat)] <- rlr.knn.dat[is.na(rlr.knn.dat)] <- 0
+  vsn.lls.dat[is.na(vsn.lls.dat)] <- loess.lls.dat[is.na(rlr.lls.dat)] <- rlr.lls.dat[is.na(rlr.lls.dat)] <- 0
+  vsn.svd.dat[is.na(vsn.svd.dat)] <- loess.svd.dat[is.na(rlr.svd.dat)] <- rlr.svd.dat[is.na(rlr.svd.dat)] <- 0
+  com_data2[is.na(com_data2)] <- 0
+  
+  #Calculating NRMSE
+  nrmse <- function(ximp, xtrue) {
+    # Convert both inputs to numeric vectors
+    ximp_vector <- as.numeric(as.matrix(ximp))
+    xtrue_vector <- as.numeric(as.matrix(xtrue))
+    
+    # Calculate NRMSE
+    sqrt(mean((ximp_vector - xtrue_vector)^2, na.rm = TRUE) / stats::var(xtrue_vector, na.rm = TRUE))
+  }  
+  nrmse_vsn_knn <- nrmse(2^vsn.knn.dat, com_data2)
+  nrmse_vsn_lls <- nrmse(2^vsn.lls.dat, com_data2)
+  nrmse_vsn_svd <- nrmse(2^vsn.svd.dat, com_data2)
+  nrmse_loess_knn <- nrmse(2^loess.knn.dat, com_data2)
+  nrmse_loess_lls <- nrmse(2^loess.lls.dat, com_data2)
+  nrmse_loess_svd <- nrmse(2^loess.svd.dat, com_data2)
+  nrmse_rlr_knn <- nrmse(2^rlr.knn.dat, com_data2)
+  nrmse_rlr_lls <- nrmse(2^rlr.lls.dat, com_data2)
+  nrmse_rlr_svd <- nrmse(2^rlr.svd.dat, com_data2)
+  
+  nrmse <- c(nrmse_vsn_knn, nrmse_vsn_lls, nrmse_vsn_svd,
+             nrmse_loess_knn, nrmse_loess_lls, nrmse_loess_svd,
+             nrmse_rlr_knn, nrmse_rlr_lls, nrmse_rlr_svd)
+  
+  nrmse_1 <- as.data.frame(round(nrmse, digits = 5))
+  
+  nrmse_result <- cbind(Combinations, nrmse_1)
+  colnames(nrmse_result) <- c("Combinations", "NRMSE")  
+  
+  result_list <- list("Best combinations" = as.data.frame(Best_combinations), "PCV Result" = PCV_table, "PEV Result" = PEV_table, "PMAD Result" =PMAD_table, "NRMSE Result" = nrmse_result,
                       "vsn_data" = cbind(com_data_ID, vsn.dat), "loess_data" = cbind(com_data_ID, loess.dat), "rlr_data" = cbind(com_data_ID, rlr.dat),
                       "vsn_knn_data" = cbind(com_data_ID,vsn.knn.dat),  "vsn_lls_data" = cbind(com_data_ID,vsn.lls.dat),"vsn_svd_data" = cbind(com_data_ID,vsn.svd.dat),
                       "loess_knn_data" = cbind(com_data_ID, as.data.frame(loess.knn.dat)), "loess_lls_data" =  cbind(com_data_ID, as.data.frame(loess.lls.dat)), "loess_svd_data" = cbind(com_data_ID, as.data.frame(loess.svd.dat)),

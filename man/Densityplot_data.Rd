@@ -22,7 +22,7 @@ This can also be used for comparing the original dataset with the normalized dat
 }
 \examples{
 Densityplot_data(yeast_data)
-Densityplot_data(knn_rlr_yeast_data)
+Densityplot_data(rlr_knn_yeast_data)
 }
 \seealso{
 `geom_density()`

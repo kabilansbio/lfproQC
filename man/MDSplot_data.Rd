@@ -16,7 +16,7 @@ MDS plot
 Multi-dimensional scaling (MDS) plots showing a 2-dimensional projection of distances between the dataset samples.
 }
 \examples{
-MDSplot_data(knn_rlr_yeast_data)
+MDSplot_data(rlr_knn_yeast_data)
 }
 \seealso{
 `mdsPlot`

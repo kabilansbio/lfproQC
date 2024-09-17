@@ -20,5 +20,5 @@ This can also be used for comparing the original dataset with the normalized dat
 }
 \examples{
 Corrplot_data(yeast_data)
-Corrplot_data(knn_rlr_yeast_data)
+Corrplot_data(rlr_knn_yeast_data)
 }

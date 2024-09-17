@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-The goal of lfproQC R package is to provide an optimal combination of normalization and imputation methods for the label-free proteomics expression dataset. Users can also access this R package through the Shiny application available at <http://omics.icar.gov.in/lfproQC>.
+The goal of lfproQC R package is to provide an optimal combination of normalization and imputation methods for the label-free proteomics expression dataset. 
 
 ## Installation
 
@@ -37,7 +37,7 @@ This is a basic example for finding the best combinations of normalization and i
 ```{r example}
 library(lfproQC)
 ## basic example code with the example dataset and data groups
-yeast <- best_combination(yeast_data, yeast_groups)
+yeast <- best_combination(yeast_data, yeast_groups, data_type = "Protein")
 yeast$`Best Combinations`
 ```
 
@@ -47,6 +47,6 @@ library(knitr)
 ```
 
 ```{r, echo=FALSE, out.width = "800px"}
-knitr::include_graphics("D:/IARI_NEW DELHI/M.Sc/Paper/Final_R/R_package/lfproQC/vignettes/images/flow1.jpg")
+knitr::include_graphics("D:/IARI_NEW DELHI/M.Sc/Paper/Final_R/R_package/lfproQC/vignettes/images/flow1.png")
 ```
 

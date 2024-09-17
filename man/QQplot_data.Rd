@@ -21,5 +21,5 @@ This can be used for comparing the original dataset with the
 normalized dataset.
 }
 \examples{
-qqplot <- QQplot_data(knn_rlr_yeast_data)
+qqplot <- QQplot_data(rlr_knn_yeast_data)
 }

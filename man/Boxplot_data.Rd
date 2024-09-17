@@ -22,7 +22,7 @@ This can also be used for comparing the original dataset with the normalized dat
 }
 \examples{
 Boxplot_data(yeast_data)
-Boxplot_data(knn_rlr_yeast_data)
+Boxplot_data(rlr_knn_yeast_data)
 }
 \seealso{
 `geom_boxplot()`

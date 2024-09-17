@@ -13,4 +13,4 @@
 #'   \item{B2}{2nd sample group, 2nd technical replicate}
 #'   \item{B3}{2nd sample group, 3rd technical replicate}
 #'}
-"knn_rlr_yeast_data"
+"rlr_knn_yeast_data"

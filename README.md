@@ -8,8 +8,7 @@
 
 The goal of lfproQC R package is to provide an optimal combination of
 normalization and imputation methods for the label-free proteomics
-expression dataset. Users can also access this R package through the
-Shiny application available at <http://omics.icar.gov.in/lfproQC>.
+expression dataset.
 
 ## Installation
 
@@ -30,11 +29,11 @@ expression dataset:
 ``` r
 library(lfproQC)
 ## basic example code with the example dataset and data groups
-yeast <- best_combination(yeast_data, yeast_groups)
+yeast <- best_combination(yeast_data, yeast_groups, data_type = "Protein")
 yeast$`Best Combinations`
 #> NULL
 ```
 
 **The overall workflow for using the ‘lfproQC’ package**
 
-<img src="vignettes/images/flow1.jpg" width="800px" />
+<img src="vignettes/images/flow1.png" width="800px" />

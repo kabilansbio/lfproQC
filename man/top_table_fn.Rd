@@ -35,7 +35,7 @@ Top table can be used for identifying the pairwise differential abundance analys
 }
 \examples{
 \donttest{
-top_table <- top_table_fn(knn_rlr_yeast_data, yeast_groups, 2, 1)
+top_table <- top_table_fn(rlr_knn_yeast_data, yeast_groups, 2, 1)
 top_table
 }
 }
