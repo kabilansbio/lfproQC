@@ -11,9 +11,9 @@ best_combination(data_input, groups, data_type, aggr_method)
 
 \item{groups}{Group information about the input data}
 
-\item{data_type}{A character string specifying the type of data being used. Use "`Peptide`" if your dataset contains peptide information, where the first column represents peptide IDs and the second column represents protein IDs. Use "`Protein`" if your dataset consists of protein data, where the first column represents protein IDs. The function will handle the data accordingly based on this parameter.}
+\item{data_type}{A character string specifying the type of data being used. Use "Peptide" if your dataset contains peptide information, where the first column represents peptide IDs and the second column represents protein IDs. Use "Protein" if your dataset consists of protein data, where the first column represents protein IDs. The function will handle the data accordingly based on this parameter.}
 
-\item{aggr_method}{A character string specifying the method for aggregating peptide data to corresponding protein values. Use "`sum`" to aggregate by the sum of peptide intensities, "`mean`" to aggregate by the mean of peptide intensities, or "`median`" to aggregate by the median of peptide intensities. This parameter is only applicable when "`data_type`" is set to "`Peptide`".}
+\item{aggr_method}{A character string specifying the method for aggregating peptide data to corresponding protein values. Use "sum" to aggregate by the sum of peptide intensities, "mean" to aggregate by the mean of peptide intensities, or "median" to aggregate by the median of peptide intensities. This parameter is only applicable when "data_type" is set to "Peptide".}
 }
 \value{
 This function gives the list  which consist of following results.

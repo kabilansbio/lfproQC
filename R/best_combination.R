@@ -6,8 +6,8 @@
 #'
 #' @param data_input Label-free proteomics expression data as a dataframe
 #' @param groups Group information about the input data
-#' @param data_type A character string specifying the type of data being used. Use "`Peptide`" if your dataset contains peptide information, where the first column represents peptide IDs and the second column represents protein IDs. Use "`Protein`" if your dataset consists of protein data, where the first column represents protein IDs. The function will handle the data accordingly based on this parameter.
-#' @param aggr_method A character string specifying the method for aggregating peptide data to corresponding protein values. Use "`sum`" to aggregate by the sum of peptide intensities, "`mean`" to aggregate by the mean of peptide intensities, or "`median`" to aggregate by the median of peptide intensities. This parameter is only applicable when "`data_type`" is set to "`Peptide`".
+#' @param data_type A character string specifying the type of data being used. Use "Peptide" if your dataset contains peptide information, where the first column represents peptide IDs and the second column represents protein IDs. Use "Protein" if your dataset consists of protein data, where the first column represents protein IDs. The function will handle the data accordingly based on this parameter.
+#' @param aggr_method A character string specifying the method for aggregating peptide data to corresponding protein values. Use "sum" to aggregate by the sum of peptide intensities, "mean" to aggregate by the mean of peptide intensities, or "median" to aggregate by the median of peptide intensities. This parameter is only applicable when "data_type" is set to "Peptide".
 #'
 #' @details Label-free LC-MS proteomics expression data is often affected by heterogeneity and missing values. 
 #' Normalization and missing value imputation are the commonly used techniques to solve these issues and make the dataset suitable for further downstream analysis. 
