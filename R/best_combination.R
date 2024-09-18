@@ -94,7 +94,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   Type <- Group <- name <- value <- . <- value_Mean <- median <-
     value_Median <- sd <- value_SD <- PCV_mean <- PCV_median <- PCV_sd <-
     PEV_mean <- PEV_median <- PEV_sd <- PMAD_mean <- PMAD_median <- PMAD_sd <-
-    rowid <- original_order <- group <- mass <- all_na <- where <- NULL
+    rowid <- original_order <- group <- mass <- all_na <- where <- type <-
+    val <- pair_num <- grp <- vals<- NULL
   
   # Adding peptide to protein aggregation functionality
   aggregate_peptide_to_protein <- function(data, method) {
@@ -452,15 +453,15 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   #Final result
   grouping_result <- function (data){
     result2 <- as.data.frame(data |>
-                               dplyr::mutate(row = row_number()) |>
+                               dplyr::mutate(row = dplyr::row_number()) |>
                                tidyr::pivot_longer(-row, values_transform = as.character) |>
-                               dplyr::mutate(pair_num = (row_number() + 1) %/% 2, 
-                                      type = if_else(row_number() %% 2 == 1, "val", "grp"), .by = row) |>
+                               dplyr::mutate(pair_num = (dplyr::row_number() + 1) %/% 2, 
+                                      type = dplyr::if_else(dplyr::row_number() %% 2 == 1, "val", "grp"), .by = row) |>
                                dplyr::select(-name) |>
                                tidyr::pivot_wider(names_from = type, values_from = value) |>
                                dplyr::summarize(vals = paste0(val, collapse = ", "),
                                          .by = c(pair_num, grp)) |>
-                               dplyr::mutate(row = row_number(), .by = pair_num) |>
+                               dplyr::mutate(row = dplyr::row_number(), .by = pair_num) |>
                                tidyr::pivot_wider(names_from = pair_num, values_from = c(vals, grp), names_vary = "slowest") |>
                                dplyr::select(-row) |>
                                `colnames<-`(colnames(data)))
