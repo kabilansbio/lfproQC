@@ -23,9 +23,10 @@ lfproQC 0.2.0 (September 6, 2024)
 
 **Improvements**
 
-The best_combination() function has been modified to handle proteomics data with an unequal number of sample replications.
+- The best_combination() function has been modified to handle proteomics data with an unequal number of sample replications.
 __________
 
 lfproQC 0.1.0 (May 23, 2024)
 
-Initial release of the package.
+- Initial release of the package.
+__________

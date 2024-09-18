@@ -94,8 +94,7 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   Type <- Group <- name <- value <- . <- value_Mean <- median <-
     value_Median <- sd <- value_SD <- PCV_mean <- PCV_median <- PCV_sd <-
     PEV_mean <- PEV_median <- PEV_sd <- PMAD_mean <- PMAD_median <- PMAD_sd <-
-    rowid <- original_order <- group <- mass <- all_na <- sym <- group_by <-
-    summarise <- across <- where <- NULL
+    rowid <- original_order <- group <- mass <- all_na <- where <- NULL
   
   # Adding peptide to protein aggregation functionality
   aggregate_peptide_to_protein <- function(data, method) {
@@ -113,12 +112,12 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     }
     
     # Convert column names to symbols for dplyr functions
-    protein_col_sym <- sym(protein_column)
+    protein_col_sym <- dplyr::sym(protein_column)
     
     # Perform aggregation based on the Protein ID column
     aggregated_data <- data %>%
-      group_by(!!protein_col_sym) %>%
-      summarise(across(where(is.numeric), ~ match.fun(method)(., na.rm = TRUE)))  # Aggregate numeric columns
+      dplyr::group_by(!!protein_col_sym) %>%
+      dplyr::summarise(dplyr::across(where(is.numeric), ~ match.fun(method)(., na.rm = TRUE)))  # Aggregate numeric columns
     
     # Rename the Protein ID column back to original after aggregation
     colnames(aggregated_data)[1] <- protein_column
@@ -212,8 +211,22 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     return(grouped_data)
   }
   
+  # Function to replace NaN with NA in list elements
+  replace_NaN_with_NA <- function(data_list) {
+    lapply(data_list, function(df) {
+      df[] <- lapply(df, function(col) {
+        if (is.numeric(col)) {
+          col[is.nan(col)] <- NA
+        }
+        return(col)
+      })
+      return(df)
+    })
+  }
+  
   #Grouping of dataframe as a triplicate groups
   group_data <- grouping_data(com_data2, groups) 
+  group_data <- replace_NaN_with_NA(group_data)
   
   #VSN Normalization function
   VSN_Norm <- function(dat) {
@@ -437,7 +450,28 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result
-  final_Group_data_PCV_mean <- subset(total_Group_data_PCV_mean2, select = -row)
+  grouping_result <- function (data){
+    result2 <- as.data.frame(data |>
+                               mutate(row = row_number()) |>
+                               pivot_longer(-row, values_transform = as.character) |>
+                               mutate(pair_num = (row_number() + 1) %/% 2, 
+                                      type = if_else(row_number() %% 2 == 1, "val", "grp"), .by = row) |>
+                               select(-name) |>
+                               pivot_wider(names_from = type, values_from = value) |>
+                               summarize(vals = paste0(val, collapse = ", "),
+                                         .by = c(pair_num, grp)) |>
+                               mutate(row = row_number(), .by = pair_num) |>
+                               pivot_wider(names_from = pair_num, values_from = c(vals, grp), names_vary = "slowest") |>
+                               select(-row) |>
+                               `colnames<-`(colnames(data)))
+    
+    result <- result2[1,]
+    return(result)
+  } 
+  
+  final_Group_data_PCV_mean1 <- subset(total_Group_data_PCV_mean2, select = -row)
+  
+  final_Group_data_PCV_mean <- grouping_result(final_Group_data_PCV_mean1)
   
   ###PCV_median
   #Combining all the above results
@@ -464,7 +498,9 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result 
-  final_Group_data_PCV_median <- subset(total_Group_data_PCV_median2, select = -row)
+  final_Group_data_PCV_median1 <- subset(total_Group_data_PCV_median2, select = -row)
+  
+  final_Group_data_PCV_median <- grouping_result (final_Group_data_PCV_median1)
   
   ###PCV_sd
   #Combining all the above results
@@ -491,7 +527,9 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result
-  final_Group_data_PCV_sd <- subset(total_Group_data_PCV_sd2, select = -row)
+  final_Group_data_PCV_sd1 <- subset(total_Group_data_PCV_sd2, select = -row)
+  
+  final_Group_data_PCV_sd <- grouping_result (final_Group_data_PCV_sd1)
   
   #Overall data PCV
   Total_data_PCV = function(data){
@@ -539,7 +577,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pcv_overall_mean2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pcv_overall_mean <-total_pcv_overall_mean2%>%dplyr::slice_min(PCV_mean, n=1, with_ties = TRUE)
+  total_pcv_overall_mean1 <-total_pcv_overall_mean2%>%dplyr::slice_min(PCV_mean, n=1, with_ties = TRUE)
+  total_pcv_overall_mean <- grouping_result(total_pcv_overall_mean1)
   original_cols <- c("Overall_Type.PCV_mean", "Overall_value.PCV_mean")
   colnames(total_pcv_overall_mean) <- original_cols
   
@@ -575,7 +614,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pcv_overall_median2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pcv_overall_median <-total_pcv_overall_median2%>%dplyr::slice_min(PCV_median, n=1, with_ties = TRUE)
+  total_pcv_overall_median1 <-total_pcv_overall_median2%>%dplyr::slice_min(PCV_median, n=1, with_ties = TRUE)
+  total_pcv_overall_median <- grouping_result(total_pcv_overall_median1)
   original_cols <- c("Overall_Type.PCV_median", "Overall_value.PCV_median")
   colnames(total_pcv_overall_median) <- original_cols
   
@@ -611,7 +651,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pcv_overall_sd2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pcv_overall_sd <-total_pcv_overall_sd2%>%dplyr::slice_min(PCV_sd, n=1, with_ties = TRUE)
+  total_pcv_overall_sd1 <-total_pcv_overall_sd2%>%dplyr::slice_min(PCV_sd, n=1, with_ties = TRUE)
+  total_pcv_overall_sd <- grouping_result(total_pcv_overall_sd1)
   original_cols <- c("Overall_Type.PCV_sd", "Overall_value.PCV_sd")
   colnames(total_pcv_overall_sd) <- original_cols
   
@@ -628,10 +669,14 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   # Remove even-numbered columns
   result_PCV_names1 <- result_PCV[, -col_indices]
   n <- matrix(t(result_PCV_names1), ncol=1)
-  all_elements <- unlist(n)
+  # Split the values by comma and remove extra spaces
+  split_data <- strsplit(n, ",\\s*")
+  
+  # Flatten the list into a single vector
+  separated_data <- unlist(split_data)
   
   # Get the frequency of each element in the dataframe
-  freq <- table(all_elements)
+  freq <- table(separated_data)
   
   # Find the most occurring element
   PCV_best_combination <- names(freq)[which.max(freq)]
@@ -726,7 +771,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result
-  final_Group_data_PEV_mean <- subset(total_Group_data_PEV_mean2, select = -row)
+  final_Group_data_PEV_mean1 <- subset(total_Group_data_PEV_mean2, select = -row)
+  final_Group_data_PEV_mean <- grouping_result(final_Group_data_PEV_mean1)
   
   ###PEV_median
   #Combining all the above results
@@ -752,8 +798,9 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
                        names_vary = "slowest")%>%
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
-  #Final result 
-  final_Group_data_PEV_median <- subset(total_Group_data_PEV_median2, select = -row)
+  #Final result
+  final_Group_data_PEV_median1 <- subset(total_Group_data_PEV_median2, select = -row)
+  final_Group_data_PEV_median <- grouping_result(final_Group_data_PEV_median1)
   
   ###PEV_sd
   #Combining all the above results
@@ -780,7 +827,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result
-  final_Group_data_PEV_sd <- subset(total_Group_data_PEV_sd2, select = -row)
+  final_Group_data_PEV_sd1 <- subset(total_Group_data_PEV_sd2, select = -row)
+  final_Group_data_PEV_sd <- grouping_result(final_Group_data_PEV_sd1)
   
   #Overall PEV function
   Total_data_PEV = function(data1){
@@ -829,7 +877,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pev_overall_mean2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pev_overall_mean <-total_pev_overall_mean2%>%dplyr::slice_min(PEV_mean, n=1, with_ties = TRUE)
+  total_pev_overall_mean1 <-total_pev_overall_mean2%>%dplyr::slice_min(PEV_mean, n=1, with_ties = TRUE)
+  total_pev_overall_mean <- grouping_result(total_pev_overall_mean1)
   original_cols <- c("Overall_Type.PEV_mean", "Overall_value.PEV_mean")
   colnames(total_pev_overall_mean) <- original_cols
   
@@ -865,7 +914,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pev_overall_median2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pev_overall_median <-total_pev_overall_median2%>%dplyr::slice_min(PEV_median, n=1, with_ties = TRUE)
+  total_pev_overall_median1 <-total_pev_overall_median2%>%dplyr::slice_min(PEV_median, n=1, with_ties = TRUE)
+  total_pev_overall_median <- grouping_result(total_pev_overall_median1)
   original_cols <- c("Overall_Type.PEV_median", "Overall_value.PEV_median")
   colnames(total_pev_overall_median) <- original_cols
   
@@ -901,7 +951,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pev_overall_sd2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pev_overall_sd <-total_pev_overall_sd2%>%dplyr::slice_min(PEV_sd, n=1, with_ties = TRUE)
+  total_pev_overall_sd1 <-total_pev_overall_sd2%>%dplyr::slice_min(PEV_sd, n=1, with_ties = TRUE)
+  total_pev_overall_sd <- grouping_result(total_pev_overall_sd1)
   original_cols <- c("Overall_Type.PEV_sd", "Overall_value.PEV_sd")
   colnames(total_pev_overall_sd) <- original_cols
   
@@ -918,10 +969,15 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   # Remove even-numbered columns
   result_PEV_names1 <- result_PEV[, -col_indices]
   n <- matrix(t(result_PEV_names1), ncol=1)
-  all_elements <- unlist(n)
+  
+  # Split the values by comma and remove extra spaces
+  split_data <- strsplit(n, ",\\s*")
+  
+  # Flatten the list into a single vector
+  separated_data <- unlist(split_data)
   
   # Get the frequency of each element in the dataframe
-  freq <- table(all_elements)
+  freq <- table(separated_data)
   
   # Find the most occurring element
   PEV_best_combination <- names(freq)[which.max(freq)]
@@ -1014,7 +1070,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result
-  final_Group_data_PMAD_mean <- subset(total_Group_data_PMAD_mean2, select = -row)
+  final_Group_data_PMAD_mean1 <- subset(total_Group_data_PMAD_mean2, select = -row)
+  final_Group_data_PMAD_mean <- grouping_result(final_Group_data_PMAD_mean1)
   
   ###PMAD_median
   #Combining all the above results
@@ -1041,7 +1098,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result 
-  final_Group_data_PMAD_median <- subset(total_Group_data_PMAD_median2, select = -row)
+  final_Group_data_PMAD_median1 <- subset(total_Group_data_PMAD_median2, select = -row)
+  final_Group_data_PMAD_median <- grouping_result(final_Group_data_PMAD_median1)
   
   ###PMAD_sd
   #Combining all the above results
@@ -1068,7 +1126,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     stats::setNames(nm = sub("(.*)_(.*)", "\\2_\\1", names(.)))
   
   #Final result
-  final_Group_data_PMAD_sd <- subset(total_Group_data_PMAD_sd2, select = -row)
+  final_Group_data_PMAD_sd1 <- subset(total_Group_data_PMAD_sd2, select = -row)
+  final_Group_data_PMAD_sd <- grouping_result(final_Group_data_PMAD_sd1)
   
   #Overall PMAD function
   Total_data_PMAD = function(data1){
@@ -1117,7 +1176,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pmad_overall_mean2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pmad_overall_mean <-total_pmad_overall_mean2%>%dplyr::slice_min(PMAD_mean, n=1, with_ties = TRUE)
+  total_pmad_overall_mean1 <-total_pmad_overall_mean2%>%dplyr::slice_min(PMAD_mean, n=1, with_ties = TRUE)
+  total_pmad_overall_mean <- grouping_result(total_pmad_overall_mean1)
   original_cols <- c("Overall_Type.PMAD_mean", "Overall_value.PMAD_mean")
   colnames(total_pmad_overall_mean) <- original_cols
   
@@ -1153,7 +1213,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pmad_overall_median2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pmad_overall_median <-total_pmad_overall_median2%>%dplyr::slice_min(PMAD_median, n=1, with_ties = TRUE)
+  total_pmad_overall_median1 <-total_pmad_overall_median2%>%dplyr::slice_min(PMAD_median, n=1, with_ties = TRUE)
+  total_pmad_overall_median <- grouping_result(total_pmad_overall_median1)
   original_cols <- c("Overall_Type.PMAD_median", "Overall_value.PMAD_median")
   colnames(total_pmad_overall_median) <- original_cols
   
@@ -1189,7 +1250,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   total_pmad_overall_sd2 <- as.data.frame(plyr::rbind.fill(data1, data2, data3, data4, data5, data6, data7, data8, data9))
   
   #Extract the top combination in overall
-  total_pmad_overall_sd <-total_pmad_overall_sd2%>%dplyr::slice_min(PMAD_sd, n=1, with_ties = TRUE)
+  total_pmad_overall_sd1 <-total_pmad_overall_sd2%>%dplyr::slice_min(PMAD_sd, n=1, with_ties = TRUE)
+  total_pmad_overall_sd <- grouping_result(total_pmad_overall_sd1)
   original_cols <- c("Overall_Type.PMAD_sd", "Overall_value.PMAD_sd")
   colnames(total_pmad_overall_sd) <- original_cols
   
@@ -1206,10 +1268,14 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   # Remove even-numbered columns
   result_PMAD_names1 <- result_PMAD[, -col_indices]
   n <- matrix(t(result_PMAD_names1), ncol=1)
-  all_elements <- unlist(n)
+  # Split the values by comma and remove extra spaces
+  split_data <- strsplit(n, ",\\s*")
+  
+  # Flatten the list into a single vector
+  separated_data <- unlist(split_data)
   
   # Get the frequency of each element in the dataframe
-  freq <- table(all_elements)
+  freq <- table(separated_data)
   
   # Find the most occurring element
   PMAD_best_combination <- names(freq)[which.max(freq)]
