@@ -452,17 +452,17 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   #Final result
   grouping_result <- function (data){
     result2 <- as.data.frame(data |>
-                               mutate(row = row_number()) |>
-                               pivot_longer(-row, values_transform = as.character) |>
-                               mutate(pair_num = (row_number() + 1) %/% 2, 
+                               dplyr::mutate(row = row_number()) |>
+                               tidyr::pivot_longer(-row, values_transform = as.character) |>
+                               dplyr::mutate(pair_num = (row_number() + 1) %/% 2, 
                                       type = if_else(row_number() %% 2 == 1, "val", "grp"), .by = row) |>
-                               select(-name) |>
-                               pivot_wider(names_from = type, values_from = value) |>
-                               summarize(vals = paste0(val, collapse = ", "),
+                               dplyr::select(-name) |>
+                               tidyr::pivot_wider(names_from = type, values_from = value) |>
+                               dplyr::summarize(vals = paste0(val, collapse = ", "),
                                          .by = c(pair_num, grp)) |>
-                               mutate(row = row_number(), .by = pair_num) |>
-                               pivot_wider(names_from = pair_num, values_from = c(vals, grp), names_vary = "slowest") |>
-                               select(-row) |>
+                               dplyr::mutate(row = row_number(), .by = pair_num) |>
+                               tidyr::pivot_wider(names_from = pair_num, values_from = c(vals, grp), names_vary = "slowest") |>
+                               dplyr::select(-row) |>
                                `colnames<-`(colnames(data)))
     
     result <- result2[1,]
