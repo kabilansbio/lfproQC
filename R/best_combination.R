@@ -36,6 +36,9 @@
 #'
 #' `NRMSE Result` NRMSE values calculated for the normalized and imputed dataset 
 #'                to the original dataset. 
+#'
+#' `rollup_protein` The aggregated protein values for the peptide dataset are 
+#'                  based on either the sum, mean, or median.
 #'                
 #' `vsn_data` The `vsn` normalized dataset
 #'
@@ -133,6 +136,8 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   
   #Converting all zeros to NAs
   data_input[data_input == 0] <- NA
+  #save it for output
+  rollup_protein <- data_input
   
   complete_data_fn <- function(data, groups) {
     # Rename the columns in the groups data
@@ -295,25 +300,47 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   rlr_group_data <- grouping_data(rlr.dat, groups)
   
   #Imputation of normalized datasets
-  #KNN imputation
-  KNN_Imputation <- function (dat)
-  {
+  KNN_Imputation <- function(dat) {
+    # Check if there are any missing values in the dataset
+    if (!anyNA(dat)) {
+      # If no missing values, return the dataset as is
+      message("No missing values found. Returning original dataset.")
+      return(dat)
+    }
+    
+    # If there are missing values, perform KNN imputation
     resultkNN <- VIM::kNN(dat, numFun = laeken::weightedMean, weightDist = TRUE,
-                          imp_var = FALSE, k= 10)
+                          imp_var = FALSE, k = 10)
     return(resultkNN)
   }
   
+  
   #LLS imputation
-  LLS_Imputation <- function (dat)
-  {
-    resultLLS <- pcaMethods::llsImpute(dat, k=2, correlation = "pearson", allVariables = TRUE)
+  LLS_Imputation <- function(dat) {
+    # Check if there are any missing values in the dataset
+    if (!anyNA(dat)) {
+      # If no missing values, return the dataset as is
+      message("No missing values found. Returning original dataset.")
+      return(dat)
+    }
+    
+    # If there are missing values, perform LLS imputation
+    resultLLS <- pcaMethods::llsImpute(dat, k = 2, correlation = "pearson", allVariables = TRUE)
     dataSet.imputed <- resultLLS@completeObs
     return(dataSet.imputed)
   }
   
+  
   #SVD imputation
-  SVD_Imputation <- function (dat)
-  {
+  SVD_Imputation <- function(dat) {
+    # Check if there are any missing values in the dataset
+    if (!anyNA(dat)) {
+      # If no missing values, return the dataset as is
+      message("No missing values found. Returning original dataset.")
+      return(dat)
+    }
+    
+    # If there are missing values, perform SVD imputation
     resultSVD <- pcaMethods::pca(dat, method = "svdImpute", nPcs = 2)
     dataSet.imputed <- resultSVD@completeObs
     return(dataSet.imputed)
@@ -456,11 +483,11 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
                                dplyr::mutate(row = dplyr::row_number()) |>
                                tidyr::pivot_longer(-row, values_transform = as.character) |>
                                dplyr::mutate(pair_num = (dplyr::row_number() + 1) %/% 2, 
-                                      type = dplyr::if_else(dplyr::row_number() %% 2 == 1, "val", "grp"), .by = row) |>
+                                             type = dplyr::if_else(dplyr::row_number() %% 2 == 1, "val", "grp"), .by = row) |>
                                dplyr::select(-name) |>
                                tidyr::pivot_wider(names_from = type, values_from = value) |>
                                dplyr::summarize(vals = paste0(val, collapse = ", "),
-                                         .by = c(pair_num, grp)) |>
+                                                .by = c(pair_num, grp)) |>
                                dplyr::mutate(row = dplyr::row_number(), .by = pair_num) |>
                                tidyr::pivot_wider(names_from = pair_num, values_from = c(vals, grp), names_vary = "slowest") |>
                                dplyr::select(-row) |>
@@ -679,8 +706,11 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   # Get the frequency of each element in the dataframe
   freq <- table(separated_data)
   
-  # Find the most occurring element
-  PCV_best_combination <- names(freq)[which.max(freq)]
+  # Find the maximum frequency
+  max_freq <- max(freq)
+  
+  # Get the names of all elements that have the maximum frequency
+  PCV_best_combination <- names(freq)[freq == max_freq]
   
   #Groupwise PEV estimation
   Group_data_PEV = function(data1, groups){
@@ -980,8 +1010,11 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   # Get the frequency of each element in the dataframe
   freq <- table(separated_data)
   
-  # Find the most occurring element
-  PEV_best_combination <- names(freq)[which.max(freq)]
+  # Find the maximum frequency
+  max_freq <- max(freq)
+  
+  # Get the names of all elements that have the maximum frequency
+  PEV_best_combination <- names(freq)[freq == max_freq]
   
   #Groupwise PMAD function
   Group_data_PMAD = function(data1, groups){
@@ -1278,11 +1311,24 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   # Get the frequency of each element in the dataframe
   freq <- table(separated_data)
   
-  # Find the most occurring element
-  PMAD_best_combination <- names(freq)[which.max(freq)]
+  # Find the maximum frequency
+  max_freq <- max(freq)
   
-  #Finding the best combination
-  Best_combinations <- cbind(PCV_best_combination, PEV_best_combination, PMAD_best_combination)
+  # Get the names of all elements that have the maximum frequency
+  PMAD_best_combination <- names(freq)[freq == max_freq]
+  
+  # Collapse the combinations into comma-separated strings
+  PCV_best_combination_str <- paste(PCV_best_combination, collapse = ", ")
+  PEV_best_combination_str <- paste(PEV_best_combination, collapse = ", ")
+  PMAD_best_combination_str <- paste(PMAD_best_combination, collapse = ", ")
+  
+  # Create a one-row data frame (or matrix) for the values
+  Best_combinations <- data.frame(
+    PCV_best_combination = PCV_best_combination_str,
+    PEV_best_combination = PEV_best_combination_str,
+    PMAD_best_combination = PMAD_best_combination_str,
+    stringsAsFactors = FALSE
+  )
   
   #Adding names to table
   Combinations <- c("vsn_knn", "vsn_lls", "vsn_svd",
@@ -1371,7 +1417,7 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
   colnames(nrmse_result) <- c("Combinations", "NRMSE")  
   
   result_list <- list("Best combinations" = as.data.frame(Best_combinations), "PCV Result" = PCV_table, "PEV Result" = PEV_table, "PMAD Result" =PMAD_table, "NRMSE Result" = nrmse_result,
-                      "vsn_data" = cbind(com_data_ID, vsn.dat), "loess_data" = cbind(com_data_ID, loess.dat), "rlr_data" = cbind(com_data_ID, rlr.dat),
+                      "rollup_protein" = rollup_protein, "vsn_data" = cbind(com_data_ID, vsn.dat), "loess_data" = cbind(com_data_ID, loess.dat), "rlr_data" = cbind(com_data_ID, rlr.dat),
                       "vsn_knn_data" = cbind(com_data_ID,vsn.knn.dat),  "vsn_lls_data" = cbind(com_data_ID,vsn.lls.dat),"vsn_svd_data" = cbind(com_data_ID,vsn.svd.dat),
                       "loess_knn_data" = cbind(com_data_ID, as.data.frame(loess.knn.dat)), "loess_lls_data" =  cbind(com_data_ID, as.data.frame(loess.lls.dat)), "loess_svd_data" = cbind(com_data_ID, as.data.frame(loess.svd.dat)),
                       "rlr_knn_data" =  cbind(com_data_ID, as.data.frame(rlr.knn.dat)), "rlr_lls_data" =  cbind(com_data_ID, as.data.frame(rlr.lls.dat)),"rlr_svd_data" =  cbind(com_data_ID, as.data.frame(rlr.svd.dat)))

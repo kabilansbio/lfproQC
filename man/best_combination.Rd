@@ -32,6 +32,9 @@ for the given dataset.
 
 `NRMSE Result` NRMSE values calculated for the normalized and imputed dataset 
                to the original dataset. 
+
+`rollup_protein` The aggregated protein values for the peptide dataset are 
+                 based on either the sum, mean, or median.
                
 `vsn_data` The `vsn` normalized dataset
 
