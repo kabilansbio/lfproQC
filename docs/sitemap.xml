@@ -1,0 +1,24 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/user_guide.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/best_combination.html</loc></url>
+<url><loc>/reference/Boxplot_data.html</loc></url>
+<url><loc>/reference/Corrplot_data.html</loc></url>
+<url><loc>/reference/Densityplot_data.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/lfproQC-package.html</loc></url>
+<url><loc>/reference/MAplot_DE_fn.html</loc></url>
+<url><loc>/reference/MDSplot_data.html</loc></url>
+<url><loc>/reference/QQplot_data.html</loc></url>
+<url><loc>/reference/reexports.html</loc></url>
+<url><loc>/reference/rlr_knn_yeast_data.html</loc></url>
+<url><loc>/reference/top_table_fn.html</loc></url>
+<url><loc>/reference/volcanoplot_DE_fn.html</loc></url>
+<url><loc>/reference/yeast_data.html</loc></url>
+<url><loc>/reference/yeast_groups.html</loc></url>
+<url><loc>/reference/yeast_top_table.html</loc></url>
+</urlset>
+
