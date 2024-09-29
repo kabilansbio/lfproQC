@@ -62,7 +62,7 @@ volcanoplot_DE_fn <- function(top_table, x1 = NULL, x2 = NULL, p = NULL){
                                                          label = ID, col = diffexpressed)) +
     ggplot2::geom_point()+
     ggplot2::theme_minimal()+
-    ggplot2::scale_color_manual(values=c("green","black","blue","red"))+
+    ggplot2::scale_color_manual(values=c("Non-significant" = "black", "Down" = "blue", "Up" = "green"))+
     ggplot2::geom_vline(xintercept = c(x1,x2), col = "azure4", linewidth = 1) +
     ggplot2::geom_hline(yintercept = -log10(0.05), col = "darkgoldenrod4", lty = 11, linewidth = 1)+
     ggplot2::ggtitle("Volcano Plot")+
