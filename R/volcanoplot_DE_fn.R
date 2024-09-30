@@ -48,13 +48,11 @@ volcanoplot_DE_fn <- function(top_table, x1 = NULL, x2 = NULL, p = NULL){
 
   res_table$diffexpressed <- "Non-significant"
 
-  res_table$diffexpressed[res_table$logFC >=x2 & res_table$adj.P.Val < p] <- "Up"
+  res_table$diffexpressed[res_table$logFC >=x2 & res_table$adj.P.Val <= p] <- "Up"
 
-  res_table$diffexpressed[res_table$logFC <=x1 & res_table$adj.P.Val < p] <- "Down"
+  res_table$diffexpressed[res_table$logFC <=x1 & res_table$adj.P.Val <= p] <- "Down"
 
-  #res_table$diffexpressed[res_table$logFC>x2 & res_table$logFC<x1 & res_table$adj.P.Val < p] <- "Significant"
-
-  res_table$diffexpressed[res_table$logFC<x1 & res_table$logFC>x2 & res_table$adj.P.Val >p] <- "Non-signficant"
+  res_table$diffexpressed[res_table$logFC<x1 & res_table$logFC>x2 & res_table$adj.P.Val > p] <- "Non-signficant"
 
   #Create the plot
   ID <- rownames(res_table)
