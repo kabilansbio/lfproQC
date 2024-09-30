@@ -51,27 +51,27 @@ yeast$`Best combinations`
 ---
   
 *<span style="color:blue">1. By boxplot</span>*
-```{r, out.width = "400px"}
-Boxplot_data(yeast$`rlr_knn_data`) 
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
+Boxplot_data(yeast$`rlr_knn_data`)  
 ```
 
 *<span style="color:blue">2. By density plot</span>*
-```{r, out.width = "400px"}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 Densityplot_data(yeast$`rlr_knn_data`)
 ```
 
 *<span style="color:blue">3. By correlation heatmap</span>*
-```{r, out.width = "400px"}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 Corrplot_data(yeast$`rlr_knn_data`)
 ```
 
 *<span style="color:blue">4. By MDS plot</span>*
-```{r, out.width = "400px"}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 MDSplot_data(yeast$`rlr_knn_data`)
 ```
 
 *<span style="color:blue">5. By QQ-plot</span>*
-```{r, out.width = "400px"}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 QQplot_data(yeast$`rlr_knn_data`)
 ```
 
@@ -79,7 +79,7 @@ QQplot_data(yeast$`rlr_knn_data`)
 ---
   
 *<span style="color:green">To Calculate the top-table values</span>*
-```{r, results='hide'}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 top_table_yeast <- top_table_fn(yeast$`rlr_knn_data`, yeast_groups, 2, 1)
 ```
 
@@ -87,13 +87,13 @@ top_table_yeast <- top_table_fn(yeast$`rlr_knn_data`, yeast_groups, 2, 1)
   
   
 *<span style="color:green">By MA plot</span>*
-```{r, out.width = "400px"}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 de_yeast_MA <- MAplot_DE_fn(top_table_yeast,-1,1,0.05)
 de_yeast_MA$`MA Plot`
 ```
 
 *<span style="color:green">By volcano plot</span>*
-```{r, out.width = "400px"}
+```{r, echo=TRUE, fig.show='hide', results='hide', warning=FALSE, message=FALSE}
 de_yeast_volcano <- volcanoplot_DE_fn (top_table_yeast,-1,1,0.05)
 de_yeast_volcano$`Volcano Plot`
 ```
@@ -133,7 +133,7 @@ library(knitr)
 ```
 
 ```{r, echo=FALSE, out.width = "800px"}
-knitr::include_graphics("images/flow1.png")
+knitr::include_graphics("images/flow1.png", dpi = 72)
 ```
 
 **Session Information**
