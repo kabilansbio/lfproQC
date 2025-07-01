@@ -325,7 +325,7 @@ best_combination <- function (data_input, groups, data_type, aggr_method){
     }
     
     # If there are missing values, perform LLS imputation
-    resultLLS <- pcaMethods::llsImpute(dat, k = 2, correlation = "pearson", allVariables = TRUE)
+    resultLLS <- pcaMethods::llsImpute(dat, k = 2, correlation = "pearson", allVariables = TRUE, verbose = TRUE)
     dataSet.imputed <- resultLLS@completeObs
     return(dataSet.imputed)
   }
