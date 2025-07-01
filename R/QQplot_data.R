@@ -15,9 +15,9 @@
 QQplot_data <- function(data) {
   Observed <- stats::rnorm(nrow(data))
   new_dat <- cbind(Observed, data[, -1])
-
+  
   dat_plot <- new_dat %>%
-    tidyr::gather(variable, value, -Observed)%>%
+    tidyr::gather(variable, value, -Observed) %>%
     dplyr::mutate(
       position = as.numeric(factor(variable, names(data)[-1])),
       order_col = (position - 1) %% 3
@@ -27,19 +27,18 @@ QQplot_data <- function(data) {
     dplyr::ungroup() |>
     dplyr::arrange(order_row, order_col) %>%
     dplyr::mutate(variable = factor(variable, levels = unique(variable)))
-
-  dat_plot %>%
+  
+  # store the ggplot object in a variable
+  p <- dat_plot %>%
     ggplot2::ggplot(ggplot2::aes(sample = value, color = variable)) +
-    ggplot2::stat_qq_line(
-      col = "red",
-      lwd = 0.5
-    ) +
+    ggplot2::stat_qq_line(col = "red", lwd = 0.5) +
     ggplot2::theme(text = ggplot2::element_text(size = 14), legend.position = "none") +
     ggplot2::stat_qq() +
-    ggplot2::facet_wrap(~variable, nrow=3) +
+    ggplot2::facet_wrap(~variable, nrow = 3) +
     ggplot2::ylab("Observed values") +
     ggplot2::xlab("Expected under normality")
-
-  plotly::ggplotly()
+  
+  # return the plotly version
+  plotly::ggplotly(p)
 }
 

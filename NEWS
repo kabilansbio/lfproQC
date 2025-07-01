@@ -1,6 +1,8 @@
 -lfproQC 1.4.1 (July 01, 2025)
 
-- Added citation to recently published paper in inst/CITATION
+-Added citation to recently published paper in inst/CITATION.
+
+-Updated QQplot_data() function.
 ----------
 -lfproQC 1.4.0 (October 10, 2024)
 
