@@ -12,6 +12,9 @@ Label-free bottom-up proteomics expression data is often affected by data hetero
 Useful links:
 \itemize{
   \item \url{https://github.com/kabilansbio/lfproQC}
+  \item \url{https://dabiniasri.shinyapps.io/lfproQC}
+  \item \url{http://omics.icar.gov.in/lfproQC}
+  \item \doi{10.1021/acs.jproteome.4c00552}
   \item Report bugs at \url{https://github.com/kabilansbio/lfproQC/issues}
 }
 

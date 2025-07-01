@@ -1,0 +1,25 @@
+citHeader("To cite the org.Hbacteriophora.eg.db package in publications, please use the following article:")
+
+bibentry(
+  bibtype = "Article",
+  title = "A Statistical Approach for Identifying the Best Combination of Normalization and Imputation Methods for Label-Free Proteomics Expression Data",
+  author = c(
+    person("Kabilan", "Sakthivel"),
+    person("Shashi Bhushan", "Lal"),
+    person("Sudhir", "Srivastava"),
+    person("Krishna Kumar", "Chaturvedi"),
+    person("Yasin Jeshima", "Khan"),
+    person("Dwijesh Chandra", "Mishra"),
+    person("Sharanbasappa D", "Madival"),
+    person("Ramasubramanian", "Vaidhyanathan"),
+    person("Girish Kumar", "Jha")
+  ),
+  journal = "Journal of Proteome Research",
+  year = 2025,
+  volume = "24",
+  number = "1",
+  pages = "158--170",
+  doi = "10.1021/acs.jproteome.4c00552",
+  url = "https://doi.org/10.1021/acs.jproteome.4c00552",
+  publisher = "American Chemical Society"
+)
