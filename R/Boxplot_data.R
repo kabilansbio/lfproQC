@@ -27,5 +27,5 @@ Boxplot_data <- function (data){
     ggplot2::ggtitle("Boxplot")+
     ggplot2::theme(text = ggplot2::element_text(size=16))+
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
-  return(plotly::ggplotly(plot))
+  plotly::ggplotly(plot)
 }

@@ -13,32 +13,31 @@
 #'
 #' @examples qqplot <- QQplot_data(rlr_knn_yeast_data)
 QQplot_data <- function(data) {
-  Observed <- stats::rnorm(nrow(data))
-  new_dat <- cbind(Observed, data[, -1])
+  Observed <- feature <- ppoints <- theoretical <- NULL
+  data <- as.data.frame(data)
+  colnames(data) <- make.unique(colnames(data))
   
-  dat_plot <- new_dat %>%
-    tidyr::gather(variable, value, -Observed) %>%
+  new_dat <- data[, -1, drop = FALSE]
+  new_dat$Observed <- stats::rnorm(nrow(new_dat))
+  
+  dat_plot <- tidyr::pivot_longer(new_dat, cols = -Observed, names_to = "feature", values_to = "value")
+  
+  dat_plot <- dat_plot %>%
+    dplyr::group_by(feature) %>%
     dplyr::mutate(
-      position = as.numeric(factor(variable, names(data)[-1])),
-      order_col = (position - 1) %% 3
+      theoretical = stats::qnorm(ppoints(length(value))),
+      value = sort(value)
     ) %>%
-    dplyr::group_by(order_col, position) |>
-    dplyr::mutate(order_row = dplyr::row_number()) |>
-    dplyr::ungroup() |>
-    dplyr::arrange(order_row, order_col) %>%
-    dplyr::mutate(variable = factor(variable, levels = unique(variable)))
+    dplyr::ungroup()
   
-  # store the ggplot object in a variable
-  p <- dat_plot %>%
-    ggplot2::ggplot(ggplot2::aes(sample = value, color = variable)) +
-    ggplot2::stat_qq_line(col = "red", lwd = 0.5) +
-    ggplot2::theme(text = ggplot2::element_text(size = 14), legend.position = "none") +
-    ggplot2::stat_qq() +
-    ggplot2::facet_wrap(~variable, nrow = 3) +
+  p <- ggplot2::ggplot(dat_plot, ggplot2::aes(x = theoretical, y = value, color = feature)) +
+    ggplot2::geom_point(size = 1, alpha = 0.6) +
+    ggplot2::geom_abline(slope = 1, intercept = 0, col = "red", lwd = 0.5) +
+    ggplot2::facet_wrap(~feature, nrow = 3, scales = "free") +
     ggplot2::ylab("Observed values") +
-    ggplot2::xlab("Expected under normality")
+    ggplot2::xlab("Theoretical quantiles") +
+    ggplot2::theme(text = ggplot2::element_text(size = 14), legend.position = "none")
   
-  # return the plotly version
   plotly::ggplotly(p)
 }
 

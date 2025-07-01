@@ -38,7 +38,7 @@ This is a basic example for finding the best combinations of normalization and i
 library(lfproQC)
 ## basic example code with the example dataset and data groups
 yeast <- best_combination(yeast_data, yeast_groups, data_type = "Protein")
-yeast$`Best Combinations`
+yeast$`Best combinations`
 ```
 
 **The overall workflow for using the 'lfproQC' package**

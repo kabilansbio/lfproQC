@@ -4,6 +4,7 @@
 ## About
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 The goal of lfproQC R package is to provide an optimal combination of
@@ -30,8 +31,9 @@ expression dataset:
 library(lfproQC)
 ## basic example code with the example dataset and data groups
 yeast <- best_combination(yeast_data, yeast_groups, data_type = "Protein")
-yeast$`Best Combinations`
-#> NULL
+yeast$`Best combinations`
+#>   PCV_best_combination PEV_best_combination PMAD_best_combination
+#> 1     rlr_knn, rlr_lls              vsn_lls               rlr_lls
 ```
 
 **The overall workflow for using the ‘lfproQC’ package**

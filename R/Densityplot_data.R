@@ -40,5 +40,5 @@ Densityplot_data <- function (data){
     ggplot2::facet_wrap(~variable, scales="free", nrow = 3)+
     ggplot2::theme_gray()+
     ggplot2::theme(text = ggplot2::element_text(size = 14))
-  suppressWarnings(return(plotly::ggplotly(density_plot)))
+  suppressWarnings(plotly::ggplotly(density_plot))
 }
