@@ -1,4 +1,4 @@
-citHeader("To cite the org.Hbacteriophora.eg.db package in publications, please use the following article:")
+citHeader("To cite the 'lfproQC' package in publications, please use the following article:")
 
 bibentry(
   bibtype = "Article",
@@ -20,6 +20,5 @@ bibentry(
   number = "1",
   pages = "158--170",
   doi = "10.1021/acs.jproteome.4c00552",
-  url = "https://doi.org/10.1021/acs.jproteome.4c00552",
   publisher = "American Chemical Society"
 )

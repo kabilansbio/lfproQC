@@ -77,6 +77,9 @@
 #'  Dr Sudhir Srivastava ("Sudhir.Srivastava@icar.gov.in")
 #'
 #'  Kabilan S ("kabilan151414@gmail.com")
+#'  
+#' @references 
+#' Sakthivel, K., Lal, S. B., Srivastava, S., Chaturvedi, K. K., Khan, Y. J., Mishra, D. C., and Jha, G. K. (2024). A Statistical Approach for Identifying the Best Combination of Normalization and Imputation Methods for Label-Free Proteomics Expression Data. Journal of Proteome Research, 24(1), 158-170. https://doi.org/10.1021/acs.jproteome.4c00552
 #'
 #' @export
 #'

@@ -1,6 +1,13 @@
+-lfproQC 1.4.2 (May 01, 2026)
+
+-Corrected citation information and updated author details.
+
+-Removed the unworking lfproQC shiny app link (http://omics.icar.gov.in/lfproQC) from Description.
+
+----------
 -lfproQC 1.4.1 (July 01, 2025)
 
--Added citation to recently published paper in inst/CITATION.
+-Added citation information of recently published paper based on this R package.
 
 ----------
 -lfproQC 1.4.0 (October 10, 2024)
