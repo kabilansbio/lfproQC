@@ -32,6 +32,7 @@ Other contributors:
   \item Dr Krishna Kumar Chaturvedi \email{kk.chaturvedi@icar.gov.in} [thesis advisor]
   \item Dr Yasin Jeshima K \email{yasinlab1.icar@gmail.com} [thesis advisor]
   \item Dr Ramasubramanian V \email{R.Subramanian@icar.gov.in} [thesis advisor]
+  \item Dr Dwijesh Chandra Mishra \email{dwij.mishra@gmail.com} [thesis advisor]
   \item Dr Girish Kumar Jha \email{girish.jha@icar.gov.in} [contributor]
   \item Dr Sharanbasappa \email{smadival509@gmail.com} [contributor]
 }
